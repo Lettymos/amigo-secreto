@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Amigo Secreto - Casa Ana Macedo</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    /* Fallback caso style.css não carregue */
+    #toast {
+      display:none; position:fixed; left:50%; bottom:24px; transform:translateX(-50%);
+      background:#111; color:#fff; padding:16px 18px; border-radius:10px;
+      box-shadow:0 8px 24px rgba(0,0,0,.25); text-align:center; max-width:520px; width:calc(100% - 32px);
+      z-index:999999;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <img src="{{ url_for('static', filename='logo.png') }}" class="logo" alt="Logo">
+
+    <div class="form-container">
+      <h1>Formulário de Amigo Secreto</h1>
+
+      <form id="amigoForm" action="{{ url_for('submit') }}" method="POST" novalidate>
+        <label for="amigo">Quem você pegou no amigo secreto?</label>
+        <input type="text" id="amigo" name="amigo" placeholder="Nome do amigo secreto" required>
+        <input type="submit" value="Enviar">
+      </form>
+
+      <!-- mensagens -->
+      <div id="toast">✔️ <strong>Obrigado!</strong> Sua resposta foi enviada com sucesso.</div>
+      <div id="erro" style="display:none; color:#8a0000; margin-top:10px;"></div>
+    </div>
+  </div>
+
+  <script>
+    const form   = document.getElementById('amigoForm');
+    const toast  = document.getElementById('toast');
+    const erroEl = document.getElementById('erro');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      erroEl.style.display = 'none';
+
+      try {
+        const resp = await fetch(form.action, { method: 'POST', body: new FormData(form) });
+        // tenta ler json (se não der, segue pelo status)
+        let ok = resp.ok;
+        try {
+          const j = await resp.json();
+          ok = ok && (j.success !== false);
+        } catch {}
+
+        if (!ok) {
+          erroEl.textContent = 'Erro ao enviar. Tente novamente.';
+          erroEl.style.display = 'block';
+          return;
+        }
+
+        form.reset();
+        // FORÇA aparecer (independe de classe/CSS externo)
+        toast.style.display = 'block';
+        // mantém por 8 segundos
+        setTimeout(() => { toast.style.display = 'none'; }, 8000);
+
+      } catch (err) {
+        console.error(err);
+        erroEl.textContent = 'Falha de conexão com o servidor.';
+        erroEl.style.display = 'block';
+      }
+    });
+  </script>
+</body>
+</html>
