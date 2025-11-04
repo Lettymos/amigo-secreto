@@ -26,3 +26,13 @@ def submit():
     
 if __name__ == '__main__':
     app.run(debug=True)
+
+from flask import send_from_directory
+
+@app.route('/download')
+def download_file():
+    try:
+        return send_from_directory(app.instance_path, 'respostas_amigo_secreto.txt', as_attachment=True)
+    except FileNotFoundError:
+        return "Arquivo não encontrado", 404
+
